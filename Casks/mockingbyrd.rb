@@ -28,7 +28,10 @@ cask "mockingbyrd" do
   # somebody restarted it by hand. Twice in a row is a pattern, not an accident. If the agent is
   # loaded, restart it into what was just installed; if it is not loaded, this does nothing, and
   # must_succeed: false keeps a machine that never installed the gateway from failing its upgrade.
-  postflight_steps do
+  # `postflight`, despite the deprecation notice brew prints. The stanza it points at,
+  # postflight_steps, is a declarative file DSL -- mkdir, move, symlink, write -- with no way to
+  # run a command, so it cannot do this. Tried: it fails with "undefined method 'system_command'".
+  postflight do
     system_command "/bin/launchctl",
                    args: ["kickstart", "-k", "gui/#{Process.uid}/com.marcobuhlmann.mockingbird.gateway"],
                    must_succeed: false
