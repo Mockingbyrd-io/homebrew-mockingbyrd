@@ -23,10 +23,22 @@ cask "mockingbyrd" do
 
   app "Mockingbyrd.app"
 
-  # Deliberately no `auto_updates true`. That stanza means the app replaces itself and tells
-  # Homebrew to leave it alone -- and this one does not. Its update check fetches a static
-  # file, compares two version numbers and offers a link; it installs nothing. Claiming
-  # otherwise would make `brew upgrade` skip this cask and strand people on what they first got.
+  # An upgrade replaces the bundle, but a process that is already running keeps the copy it
+  # started from -- so the gateway went on serving the previous version after every release until
+  # somebody restarted it by hand. Twice in a row is a pattern, not an accident. If the agent is
+  # loaded, restart it into what was just installed; if it is not loaded, this does nothing, and
+  # must_succeed: false keeps a machine that never installed the gateway from failing its upgrade.
+  postflight do
+    system_command "/bin/launchctl",
+                   args: ["kickstart", "-k", "gui/#{Process.uid}/com.marcobuhlmann.mockingbird.gateway"],
+                   must_succeed: false
+  end
+
+  # Deliberately no `auto_updates true`. The app can install an update itself -- it verifies the
+  # download against the published checksum, a Developer ID signature and a notarization ticket
+  # before replacing anything -- but it never does so to a copy Homebrew installed, because
+  # brew's receipt would then name a version that is not on disk. For this cask brew is the only
+  # route, so the stanza would be false and would make `brew upgrade` skip it.
 
   zap trash: [
     "~/.config/mockingbird",
