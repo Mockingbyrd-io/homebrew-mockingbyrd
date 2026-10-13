@@ -28,7 +28,7 @@ cask "mockingbyrd" do
   # somebody restarted it by hand. Twice in a row is a pattern, not an accident. If the agent is
   # loaded, restart it into what was just installed; if it is not loaded, this does nothing, and
   # must_succeed: false keeps a machine that never installed the gateway from failing its upgrade.
-  postflight do
+  postflight_steps do
     system_command "/bin/launchctl",
                    args: ["kickstart", "-k", "gui/#{Process.uid}/com.marcobuhlmann.mockingbird.gateway"],
                    must_succeed: false
